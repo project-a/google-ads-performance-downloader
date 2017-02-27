@@ -76,16 +76,18 @@ Optionally, you can apply labels on all hierarchy levels for segmenting the stru
 
 The easiest way to install google-adwords-downloader is using pip
 
-    pip install git+ssh://git@codebasehq.com:project-a/mara/google-adwords-performance-downloader.git
+    pip install git+ssh://git@github.com:mara/google-adwords-performance-downloader.git
 
 In case you want to install it in a virtual environment:
 
-    $ git clone git@codebasehq.com:project-a/mara/google-adwords-performance-downloader.git adwords_downloader
+    $ git clone git@github.com:mara/google-adwords-performance-downloader.git adwords_downloader
     $ cd adwords_downloader
     $ python3 -m venv .venv
     $ .venv/bin/pip install .
 
 ### Set up your OAuth2 credentials
+
+**Note: Should you not be able to see the images, please deactivate your adblocker** 
 
 Create an `oauth2_client_id` and `oauth2_client_secret`. As described in [Google AdWords documentation](https://developers.google.com/adwords/api/docs/guides/authentication#installed). 
 
