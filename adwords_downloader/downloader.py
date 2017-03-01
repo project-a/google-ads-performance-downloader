@@ -58,7 +58,6 @@ class AdWordsApiClient(adwords.AdWordsClient):
         return service.get({'fields': ['CustomerId', 'Name', 'CanManageClients', 'AccountLabels']})
 
     def _fetch_client_customers(self):
-        # TODO: Adjust description
         """Fetches the client customers, including their names and account labels, from
          the Google AdWords API
 

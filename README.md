@@ -76,7 +76,7 @@ Optionally, you can apply labels on all hierarchy levels for segmenting the stru
 
 The easiest way to install google-adwords-downloader is using pip
 
-    pip install git+ssh://git@github.com:mara/google-adwords-performance-downloader.git
+    pip install git+https://github.com/mara/google-adwords-performance-downloader.git
 
 In case you want to install it in a virtual environment:
 
