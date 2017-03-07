@@ -1,6 +1,6 @@
 # Google AdWords Performance Downloader
 
-A Python script for downloading performance data and account structure from an [MCC account](https://adwords.google.com/home/tools/manager-accounts/) using the Google Adwords API ([v201609](https://developers.google.com/adwords/api/docs/reference/#v201609)) to local files. 
+A Python script for downloading performance data and account structure from an [MCC account](https://adwords.google.com/home/tools/manager-accounts/) using the Google Adwords API ([v201702](https://developers.google.com/adwords/api/docs/reference/#v201702)) to local files. 
 
 ## Resulting data
 By default, it creates two data sets:
@@ -71,7 +71,7 @@ Optionally, you can apply labels on all hierarchy levels for segmenting the stru
  The Google AdWords Performance Downloader requires:
 
     Python (>= 3.5)
-    googleads (==5.1.0)
+    googleads (==5.2.0)
     click (>=6.0)
 
 The easiest way to install google-adwords-downloader is using pip

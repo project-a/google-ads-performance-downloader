@@ -16,7 +16,7 @@ from oauth2client import client as oauth2_client
 
 from adwords_downloader import config
 
-API_VERSION = 'v201609'
+API_VERSION = 'v201702'
 OUTPUT_FILE_VERSION = 'v1'
 
 
@@ -142,8 +142,8 @@ def download_performance(api_client: AdWordsApiClient,
             version=OUTPUT_FILE_VERSION))
         filepath = ensure_data_directory(relative_filepath)
 
-        if not (filepath.is_file()
-                or (last_date - current_date).days <= int(config.redownload_window())):
+        if (not filepath.is_file()
+            or (last_date - current_date).days <= int(config.redownload_window())):
             report_list = get_performance_for_single_day(api_client,
                                                          client_customer_ids,
                                                          current_date,
