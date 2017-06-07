@@ -16,7 +16,7 @@ from oauth2client import client as oauth2_client
 
 from adwords_downloader import config
 
-API_VERSION = 'v201702'
+API_VERSION = 'v201705'
 OUTPUT_FILE_VERSION = 'v1'
 
 
