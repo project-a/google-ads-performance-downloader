@@ -7,7 +7,7 @@ setup(
     description="Downloads data from the Google Adwords Api to local files",
 
     install_requires=[
-        'googleads==5.6.0',
+        'googleads==6.0.0',
         'click>=6.0'
     ],
 
