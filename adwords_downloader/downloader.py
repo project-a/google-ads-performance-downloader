@@ -19,11 +19,6 @@ from oauth2client import client as oauth2_client
 API_VERSION = 'v201705'
 OUTPUT_FILE_VERSION = 'v1'
 
-# Timeout between retries in seconds.
-BACKOFF_FACTOR = 5
-# Maximum number of retries for 500 errors.
-MAX_RETRIES = 5
-
 
 class PerformanceReportType(Enum):
     """ A Google performance report type
@@ -398,12 +393,12 @@ def _download_adwords_report(api_client: AdWordsApiClient,
                                                               skip_report_summary=False)
             return report
         except errors.AdWordsReportError as e:
-            if e.code == 500 and retry_count < MAX_RETRIES:
+            if e.code == 500 and retry_count < config.max_retries():
                 logging.warning(('Failed attempt #{retry_count} for report with settings:\n'
                                  '{report_filter}\n'
                                  'Retrying...').format(retry_count=retry_count,
                                                        report_filter=report_filter))
-                time.sleep(retry_count * BACKOFF_FACTOR)
+                time.sleep(retry_count * config.retry_backoff_factor())
             else:
                 raise e
 

@@ -42,3 +42,12 @@ def oauth2_refresh_token() -> str:
 def redownload_window() -> str:
     """The number of days for which the performance data will be redownloaded"""
     return '30'
+
+
+def max_retries() -> int:
+    """How ofthen try retry at max in case of 500 errors"""
+    return 5
+
+def retry_backoff_factor() -> int:
+    """Timeout between retries in seconds"""
+    return 5
