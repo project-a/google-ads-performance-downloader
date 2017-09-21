@@ -1,6 +1,6 @@
 # Google AdWords Performance Downloader
 
-A Python script for downloading performance data and account structure from an [MCC account](https://adwords.google.com/home/tools/manager-accounts/) using the Google Adwords API ([v201702](https://developers.google.com/adwords/api/docs/reference/#v201702)) to local files. 
+A Python script for downloading performance data and account structure from an [MCC account](https://adwords.google.com/home/tools/manager-accounts/) using the Google Adwords API ([v201705](https://developers.google.com/adwords/api/docs/reference/#v201705)) to local files.
 
 ## Resulting data
 By default, it creates two data sets:
@@ -128,3 +128,41 @@ To run the Google AdWords Performance Downloader call `download-adwords-performa
     --oauth2_client_secret aBcDeFg \
     --oauth2_refresh_token 1/acbd-efghijklmnopqrstuvwxyz \
     --data_dir /tmp/adwords
+
+
+All options:
+    
+    $ download-adwords-performance-data --help
+    Usage: download-adwords-performance-data [OPTIONS]
+    
+      Downloads data. When options are not specified, then the defaults from
+      config.py are used.
+    
+    Options:
+      --client_customer_id TEXT    The id of the manager account (MCC) that
+                                   contains all the accounts for which data should
+                                   be downloaded. Default: "123-456-7890"
+      --developer_token TEXT       The developer token that is used to access the
+                                   Adwords API. Default: "ABCDEFEGHIJKL"
+      --oauth2_client_id TEXT      The Oauth client id obtained from the Adwords
+                                   API center. Default: "123456789-abcdefghijklmno
+                                   pqrstuvwxyz.apps.googleusercontent.com"
+      --oauth2_client_secret TEXT  The Oauth client secret obtained from the
+                                   Adwords API center. Default: "aBcDeFg"
+      --oauth2_refresh_token TEXT  The Oauth refresh token returned from the
+                                   adwords-downloader-refresh-oauth2-token script.
+                                   Default: "1/acbd-efghijklmnopqrstuvwxyz"
+      --data_dir TEXT              The directory where result data is written to.
+                                   Default: "/tmp/adwords"
+      --first_date TEXT            The first day for which data is downloaded.
+                                   Default: "2015-01-01"
+      --redownload_window TEXT     The number of days for which the performance
+                                   data will be redownloaded. Default: "30"
+      --output_file_version TEXT   A suffix that is added to output files,
+                                   denoting a version of the data format. Default:
+                                   "v3"
+      --max_retries TEXT           How often try retry at max in case of 500
+                                   errors. Default: "5"
+      --retry_backoff_factor TEXT  How many seconds to wait between retries (is
+                                   multiplied with retry count). Default: "5"
+      --help                       Show this message and exit.

@@ -3,21 +3,21 @@ import datetime
 import errno
 import gzip
 import json
-from enum import Enum
-from pathlib import Path
+import logging
 import re
+import shutil
 import sys
 import tempfile
-import shutil
-import logging
-
-from googleads import adwords, oauth2
-from oauth2client import client as oauth2_client
+import time
+from pathlib import Path
 
 from adwords_downloader import config
+from enum import Enum
+from googleads import adwords, oauth2, errors
+from oauth2client import client as oauth2_client
 
 API_VERSION = 'v201705'
-OUTPUT_FILE_VERSION = 'v1'
+
 
 
 class PerformanceReportType(Enum):
@@ -139,7 +139,7 @@ def download_performance(api_client: AdWordsApiClient,
         relative_filepath = Path('{date:%Y/%m/%d}/adwords/{filename}_{version}.json.gz'.format(
             date=current_date,
             filename=performance_report_type.value,
-            version=OUTPUT_FILE_VERSION))
+            version=config.output_file_version()))
         filepath = ensure_data_directory(relative_filepath)
 
         if (not filepath.is_file()
@@ -201,7 +201,7 @@ def download_account_structure(api_client: AdWordsApiClient):
         api_client: An AdWordsApiClient
 
     """
-    filename = Path('adwords-account-structure_{}.csv.gz'.format(OUTPUT_FILE_VERSION))
+    filename = Path('adwords-account-structure_{}.csv.gz'.format(config.output_file_version()))
     filepath = ensure_data_directory(filename)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -382,11 +382,25 @@ def _download_adwords_report(api_client: AdWordsApiClient,
         report_filter['dateRangeType'] = 'TODAY'
 
     report_downloader = api_client.GetReportDownloader(version=API_VERSION)
-    report = report_downloader.DownloadReportAsString(report_filter,
-                                                      skip_report_header=False,
-                                                      skip_column_header=False,
-                                                      skip_report_summary=False)
-    return report
+
+    retry_count = 0
+    while True:
+        retry_count += 1
+        try:
+            report = report_downloader.DownloadReportAsString(report_filter,
+                                                              skip_report_header=False,
+                                                              skip_column_header=False,
+                                                              skip_report_summary=False)
+            return report
+        except errors.AdWordsReportError as e:
+            if e.code == 500 and retry_count < config.max_retries():
+                logging.warning(('Failed attempt #{retry_count} for report with settings:\n'
+                                 '{report_filter}\n'
+                                 'Retrying...').format(retry_count=retry_count,
+                                                       report_filter=report_filter))
+                time.sleep(retry_count * config.retry_backoff_factor())
+            else:
+                raise e
 
 
 def refresh_oauth_token():

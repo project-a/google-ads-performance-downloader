@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 
 setup(
     name='google-adwords-performance-downloader',
-    version='1.0.0',
+    version='1.2.0',
 
     description="Downloads data from the Google Adwords Api to local files",
 
     install_requires=[
-        'googleads==5.6.0',
+        'googleads==6.0.0',
         'click>=6.0'
     ],
 
