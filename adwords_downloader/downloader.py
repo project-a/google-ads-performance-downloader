@@ -139,7 +139,7 @@ def download_performance(api_client: AdWordsApiClient,
         relative_filepath = Path('{date:%Y/%m/%d}/adwords/{filename}_{version}.json.gz'.format(
             date=current_date,
             filename=performance_report_type.value,
-            version=OUTPUT_FILE_VERSION))
+            version=config.output_file_version()))
         filepath = ensure_data_directory(relative_filepath)
 
         if (not filepath.is_file()
@@ -201,7 +201,7 @@ def download_account_structure(api_client: AdWordsApiClient):
         api_client: An AdWordsApiClient
 
     """
-    filename = Path('adwords-account-structure_{}.csv.gz'.format(OUTPUT_FILE_VERSION))
+    filename = Path('adwords-account-structure_{}.csv.gz'.format(config.output_file_version()))
     filepath = ensure_data_directory(filename)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
