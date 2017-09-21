@@ -7,7 +7,11 @@
 
 - Updated googleads-python-lib to 6.0 and use AdWords API version v201705
 - Added retry logic
-- make the config and click commands discoverable in [mara-app](https://github.com/mara/mara-app) >= 1.2.0
+- Made the config and click commands discoverable in [mara-app](https://github.com/mara/mara-app) >= 1.2.0
+
+**required changes**
+
+- The file format changed to `v3`. Adapt etl scripts that process the output data.
 
 
 ## 1.1.1
