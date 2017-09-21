@@ -43,11 +43,14 @@ def redownload_window() -> str:
     """The number of days for which the performance data will be redownloaded"""
     return '30'
 
+def output_file_version() -> str:
+    """A suffix that is added to output files, denoting a version of the data format"""
+    return 'v3'
 
 def max_retries() -> int:
-    """How ofthen try retry at max in case of 500 errors"""
+    """How often try retry at max in case of 500 errors"""
     return 5
 
 def retry_backoff_factor() -> int:
-    """Timeout between retries in seconds"""
+    """How many seconds to wait between retries (is multiplied with retry count)"""
     return 5

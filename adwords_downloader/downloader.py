@@ -17,7 +17,7 @@ from googleads import adwords, oauth2, errors
 from oauth2client import client as oauth2_client
 
 API_VERSION = 'v201705'
-OUTPUT_FILE_VERSION = 'v1'
+
 
 
 class PerformanceReportType(Enum):
