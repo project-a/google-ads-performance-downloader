@@ -16,29 +16,29 @@ def first_date() -> str:
 
 def client_customer_id() -> str:
     """The id of the manager account (MCC) that contains all the accounts for which data should be downloaded"""
-    return '896-463-2775'
+    return '123-456-7890'
 
 
 def developer_token() -> str:
     """The developer token that is used to access the Adwords API"""
-    return '2a2K68DxyNWbPgMMKIfHdw'
+    return 'ABCDEFEGHIJKL'
 
 
 def oauth2_client_id() -> str:
     """The Oauth client id obtained from the Adwords API center"""
-    return '400397489470-f7drtoqfpe3oq181cf7nt74he643cuo0.apps.googleusercontent.com'
+    return '123456789-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com'
 
 
 def oauth2_client_secret() -> str:
     """The Oauth client secret obtained from the Adwords API center"""
-    return 'J9Uxui962FU4GuNRCT36bQTD'
+    return 'aBcDeFg'
 
 
 def oauth2_refresh_token() -> str:
     """The Oauth refresh token returned from the adwords-downloader-refresh-oauth2-token script"""
-    return '1/MMZf_PWTvoSNcr2pok7Na-Hto_bcIkKfdE6z_zjdmnk'
+    return '1/acbd-efghijklmnopqrstuvwxyz'
 
-# 4/kYcOl8BN9r9gWxMsgkLFOZY3IewKGqc-FAIAMqCv6wE
+
 def redownload_window() -> str:
     """The number of days for which the performance data will be redownloaded"""
     return '30'
