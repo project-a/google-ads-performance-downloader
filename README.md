@@ -63,6 +63,7 @@ To use the Google AdWords Performance Downloader you have to
 - consolidate all accounts of a company under a single [manager account](https://adwords.google.com/home/tools/manager-accounts/) (aka. MCC), 
 - not delete any ad, ad group, campaign or account (but disable them instead) so that you can relate past performances to structure data,
 - set up Oauth2 credentials to access the Google Adwords API. See [Set up your OAuth2 credentials](#set-up-your-oauth2-credentials) for the necessary steps.
+- create the `config.py` file, use `config.py.example` as a reference
 
 Optionally, you can apply labels on all hierarchy levels for segmenting the structure.
 
