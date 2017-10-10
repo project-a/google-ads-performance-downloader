@@ -9,15 +9,14 @@ import shutil
 import sys
 import tempfile
 import time
+from enum import Enum
 from pathlib import Path
 
 from adwords_downloader import config
-from enum import Enum
 from googleads import adwords, oauth2, errors
 from oauth2client import client as oauth2_client
 
 API_VERSION = 'v201705'
-
 
 
 class PerformanceReportType(Enum):
