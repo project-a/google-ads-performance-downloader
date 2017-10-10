@@ -1,6 +1,10 @@
 # Changelog
 
+## 1.3.0 
+*2017-10-10* 
 
+- Updated googleads-python-lib to 8.0
+-
 
 ## 1.2.0 
 *2017-09-20* 
