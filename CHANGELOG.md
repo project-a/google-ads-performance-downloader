@@ -1,6 +1,6 @@
 # Changelog
 
-##1.4.0
+## 1.4.0
 *2017-10-23*
 
 - Updated googleads-python-lib to 8.1.0
