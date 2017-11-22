@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1
+*2017-11-21*
+
+- Updated googleads-python-lib to 9.0.0
+
 ## 1.4.0
 *2017-10-23*
 
@@ -33,4 +38,3 @@
 *2017-06-07* 
 
 - Updated googleads-python-lib to 5.6.0 and use AdWords API version v201705
-
