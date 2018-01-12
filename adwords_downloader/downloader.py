@@ -397,7 +397,7 @@ def _download_adwords_report(api_client: AdWordsApiClient,
 
                 logging.warning(('Error HTTP #{e.code} Failed attempt #{retry_count} for report with settings:\n'
                                  '{report_filter}\n'
-                                 'Retrying...').format(retry_count=retry_count,
+                                 'Retrying...').format(e=e,retry_count=retry_count,
                                                        report_filter=report_filter))
                 time.sleep(retry_count * config.retry_backoff_factor())
             else:
