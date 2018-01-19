@@ -3,11 +3,13 @@ import datetime
 import errno
 import gzip
 import json
+import csv
 import logging
 import re
 import shutil
 import sys
 import tempfile
+import json
 import time
 from enum import Enum
 from pathlib import Path
@@ -142,7 +144,7 @@ def download_performance(api_client: AdWordsApiClient,
         filepath = ensure_data_directory(relative_filepath)
 
         if (not filepath.is_file()
-            or (last_date - current_date).days <= int(config.redownload_window())):
+                or (last_date - current_date).days <= int(config.redownload_window())):
             report_list = get_performance_for_single_day(api_client,
                                                          client_customer_ids,
                                                          current_date,
@@ -211,7 +213,7 @@ def download_account_structure(api_client: AdWordsApiClient):
             writer = csv.writer(tmp_campaign_structure_file, delimiter="\t")
             writer.writerow(header)
             for client_customer_id, client_customer in api_client.client_customers.items():
-                labels = ";".join(client_customer['Labels'])
+                labels = json.dumps(client_customer['Labels'])
                 client_customer_attributes = parse_labels(labels)
                 client_customer_name = client_customer['Name']
 
@@ -434,7 +436,7 @@ def parse_labels(labels: str) -> {str: str}:
     """Extracts labels from a string
 
     Args:
-        labels: Labels in the form of '"[""{key_1=value_1}"",""{key_2=value_2}]"'
+        labels: Labels as an json encoded array of strings '["{key_1=value_1}","{key_2=value_2}]", ..]'
 
     Returns:
             A dictionary of labels with {key_1 : value_1, ...} format
@@ -456,12 +458,13 @@ def _convert_report_to_list(report: str) -> [{}]:
 
     """
     # Discard the first line as it only contains meta information.
-    # The second line holds the column names
-    keys = [x.strip() for x in report.split('\n')[1].split('\t')]
     # The last two lines only display summaries
-    values = [x.split('\t') for x in report.split('\n')[2:-2]]
-    report_list = [dict(x) for x in [zip(keys, y) for y in values]]
-    return report_list
+    rows = list(csv.reader(report.split('\n')[1:-2], dialect='excel-tab'))
+
+    # The second line holds the column names
+    keys = rows[0]
+
+    return [dict(zip(keys, row)) for row in rows[1:]]
 
 
 def ensure_data_directory(relative_path: Path = None) -> Path:
