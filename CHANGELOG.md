@@ -1,10 +1,12 @@
 # Changelog
 
 
-## 1.4.2
-*2018-01-11*
+## 1.5.0
+*2018-01-19*
 
+- Allow for spaces in account / campaign / ad group labels
 - Retry in case of any error, not only HTTP 500
+
 
 ## 1.4.1
 *2017-11-21*
