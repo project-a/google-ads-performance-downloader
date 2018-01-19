@@ -2,6 +2,7 @@ import csv
 import datetime
 import errno
 import gzip
+import http
 import json
 import csv
 import logging
@@ -394,8 +395,18 @@ def _download_adwords_report(api_client: AdWordsApiClient,
                                                               skip_report_summary=False)
             return report
         except errors.AdWordsReportError as e:
-            if e.code == 500 and retry_count < config.max_retries():
-                logging.warning(('Failed attempt #{retry_count} for report with settings:\n'
+            if retry_count < config.max_retries():
+
+                logging.warning(('Error HTTP #{e.code} Failed attempt #{retry_count} for report with settings:\n'
+                                 '{report_filter}\n'
+                                 'Retrying...').format(e=e,retry_count=retry_count,
+                                                       report_filter=report_filter))
+                time.sleep(retry_count * config.retry_backoff_factor())
+            else:
+                raise e
+        except http.client.RemoteDisconnected as e:
+            if retry_count < config.max_retries():
+                logging.warning(('Network error during attempt #{retry_count} for report with settings:\n'
                                  '{report_filter}\n'
                                  'Retrying...').format(retry_count=retry_count,
                                                        report_filter=report_filter))

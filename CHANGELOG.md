@@ -1,5 +1,11 @@
 # Changelog
 
+
+## 1.4.2
+*2018-01-11*
+
+- Retry in case of any error, not only HTTP 500
+
 ## 1.4.1
 *2017-11-21*
 
