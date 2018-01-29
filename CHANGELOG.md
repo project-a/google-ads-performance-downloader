@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.1
+*2018-01-29*
+
+- Allow for arbitrary characters in account / campaign / ad group labels
+
 
 ## 1.5.0
 *2018-01-19*

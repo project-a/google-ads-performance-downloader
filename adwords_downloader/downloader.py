@@ -453,7 +453,7 @@ def parse_labels(labels: str) -> {str: str}:
             A dictionary of labels with {key_1 : value_1, ...} format
 
     """
-    matches = re.findall("{([a-zA-Z|_\s]+)=([a-zA-Z|_\s]+)}", labels)
+    matches = re.findall("{([^=]+)=([^=]+)}", labels)
     labels = {x[0].strip().lower().title(): x[1].strip() for x in matches}
     return labels
 
