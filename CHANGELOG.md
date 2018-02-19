@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0
+*2018-02-19*
+- Moved to googleads version 10.0.0
+
 ## 1.5.1
 *2018-01-29*
 
