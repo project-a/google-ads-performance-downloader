@@ -70,7 +70,7 @@ Optionally, you can apply labels on all hierarchy levels for segmenting the stru
 
  The Google AdWords Performance Downloader requires:
 
-    Python (>= 3.5)
+    Python (>= 3.6)
     googleads (==10.0.0)
     click (>=6.0)
 
