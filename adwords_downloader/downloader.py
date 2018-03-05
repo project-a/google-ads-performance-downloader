@@ -19,7 +19,6 @@ from adwords_downloader import config
 from googleads import adwords, oauth2, errors
 from oauth2client import client as oauth2_client
 
-API_VERSION = 'v201705'
 
 
 class PerformanceReportType(Enum):
@@ -383,7 +382,7 @@ def _download_adwords_report(api_client: AdWordsApiClient,
     else:
         report_filter['dateRangeType'] = 'TODAY'
 
-    report_downloader = api_client.GetReportDownloader(version=API_VERSION)
+    report_downloader = api_client.GetReportDownloader(version=config.api_version())
 
     retry_count = 0
     while True:
