@@ -1,9 +1,7 @@
-import csv
 import datetime
 import errno
 import gzip
 import http
-import json
 import csv
 import logging
 import re
@@ -56,7 +54,7 @@ class AdWordsApiClient(adwords.AdWordsClient):
 
         """
         service = self.GetService(service_name='ManagedCustomerService')
-        return service.get({'fields': ['CustomerId', 'Name', 'CanManageClients', 'AccountLabels']})
+        return service.get({'fields': ['CustomerId', 'Name', 'CanManageClients', 'AccountLabels', 'CurrencyCode']})
 
     def _fetch_client_customers(self):
         """Fetches the client customers, including their names and account labels, from
@@ -78,7 +76,8 @@ class AdWordsApiClient(adwords.AdWordsClient):
                     account_labels = [x.name for x in managed_customer.accountLabels]
                 client_customers[managed_customer.customerId] = {
                     'Name': managed_customer.name,
-                    'Labels': account_labels}
+                    'Labels': account_labels,
+                    'Currency Code': managed_customer.currencyCode}
         return client_customers
 
 
@@ -209,7 +208,7 @@ def download_account_structure(api_client: AdWordsApiClient):
         tmp_filepath = Path(tmp_dir, filename)
         with gzip.open(str(tmp_filepath), 'wt') as tmp_campaign_structure_file:
             header = ['Ad Id', 'Ad', 'Ad Group Id', 'Ad Group', 'Campaign Id',
-                      'Campaign', 'Customer Id', 'Customer Name', 'Attributes']
+                      'Campaign', 'Customer Id', 'Customer Name', 'Attributes', 'Currency Code']
             writer = csv.writer(tmp_campaign_structure_file, delimiter="\t")
             writer.writerow(header)
             for client_customer_id, client_customer in api_client.client_customers.items():
@@ -224,7 +223,7 @@ def download_account_structure(api_client: AdWordsApiClient):
                 for ad_id, ad_data_dict in ad_data.items():
                     campaign_id = ad_data_dict['Campaign ID']
                     ad_group_id = ad_data_dict['Ad group ID']
-
+                    currency_code = client_customer['Currency Code']
                     attributes = {**client_customer_attributes,
                                   **campaign_attributes.get(campaign_id, {}),
                                   **ad_group_attributes.get(ad_group_id, {}),
@@ -238,7 +237,9 @@ def download_account_structure(api_client: AdWordsApiClient):
                           ad_data_dict['Campaign'],
                           str(client_customer_id),
                           client_customer_name,
-                          json.dumps(attributes)]
+                          json.dumps(attributes),
+                          currency_code
+                          ]
 
                     writer.writerow(ad)
 

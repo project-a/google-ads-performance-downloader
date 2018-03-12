@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.0
+*2018-03-12*
+- Download currency information for each account
+
+
 ## 1.6.1
 *2018-03-05*
 - Made API version configurable
