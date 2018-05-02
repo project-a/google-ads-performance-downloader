@@ -15,8 +15,9 @@ from pathlib import Path
 
 from adwords_downloader import config
 from googleads import adwords, oauth2, errors
-from oauth2client import client as oauth2_client
 
+from google_auth_oauthlib.flow import InstalledAppFlow
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 
 class PerformanceReportType(Enum):
@@ -399,7 +400,7 @@ def _download_adwords_report(api_client: AdWordsApiClient,
 
                 logging.warning(('Error HTTP #{e.code} Failed attempt #{retry_count} for report with settings:\n'
                                  '{report_filter}\n'
-                                 'Retrying...').format(e=e,retry_count=retry_count,
+                                 'Retrying...').format(e=e, retry_count=retry_count,
                                                        report_filter=report_filter))
                 time.sleep(retry_count * config.retry_backoff_factor())
             else:
@@ -415,32 +416,63 @@ def _download_adwords_report(api_client: AdWordsApiClient,
                 raise e
 
 
+class ClientConfigBuilder(object):
+    """Helper class used to build a client config dict used in the OAuth 2.0 flow."""
+
+    _DEFAULT_AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+    _DEFAULT_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
+    CLIENT_TYPE_WEB = 'web'
+    CLIENT_TYPE_INSTALLED_APP = 'installed'
+
+    def __init__(self, client_type=None, client_id=None, client_secret=None,
+                 auth_uri=_DEFAULT_AUTH_URI, token_uri=_DEFAULT_TOKEN_URI):
+        self.client_type = client_type
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.auth_uri = auth_uri
+        self.token_uri = token_uri
+
+    def Build(self):
+        """Builds a client config dictionary used in the OAuth 2.0 flow."""
+        if all((self.client_type, self.client_id, self.client_secret,
+                self.auth_uri, self.token_uri)):
+            client_config = {
+                self.client_type: {
+                    'client_id': self.client_id,
+                    'client_secret': self.client_secret,
+                    'auth_uri': self.auth_uri,
+                    'token_uri': self.token_uri
+                }
+            }
+        else:
+            raise ValueError('Required field is missing.')
+
+        return client_config
+
+
 def refresh_oauth_token():
     """Retrieve and display the access and refresh token."""
 
-    flow = oauth2_client.OAuth2WebServerFlow(
-        client_id=config.oauth2_client_id(),
-        client_secret=config.oauth2_client_secret(),
-        scope=['https://www.googleapis.com/auth/adwords'],
-        user_agent='Ads Python Client Library',
-        redirect_uri='urn:ietf:wg:oauth:2.0:oob')
+    client_config = ClientConfigBuilder(
+        client_type=ClientConfigBuilder.CLIENT_TYPE_WEB, client_id=config.oauth2_client_id(),
+        client_secret=config.oauth2_client_secret())
+    flow = InstalledAppFlow.from_client_config(client_config.Build(),
+                                               scopes=['https://www.googleapis.com/auth/adwords'])
+    flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
+    authorize_url, _ = flow.authorization_url(prompt='consent')
 
-    authorize_url = flow.step1_get_authorize_url()
-
-    print(('Log into the Google Account you use to access your AdWords account '
-           'and go to the following URL: \n{}\n'.format(authorize_url)))
+    print('Log into the Google Account you use to access your AdWords account '
+          'and go to the following URL: \n%s\n' % authorize_url)
     print('After approving the token enter the verification code (if specified).')
     code = input('Code: ').strip()
-
     try:
-        credential = flow.step2_exchange(code)
-    except oauth2_client.FlowExchangeError as e:
-        print('Authentication has failed: {}'.format(e))
+        flow.fetch_token(code=code)
+    except InvalidGrantError as ex:
+        print('Authentication has failed: %s' % ex)
         sys.exit(1)
-    else:
-        print('OAuth2 authorization successful!\n\n'
-              'Your access token is:\n {access_token}\n\nYour refresh token is:\n {refresh_token}'
-              .format(access_token=credential.access_token, refresh_token=credential.refresh_token))
+
+    print('Access token: %s' % flow.credentials.token)
+    print('Refresh token: %s' % flow.credentials.refresh_token)
 
 
 def parse_labels(labels: str) -> {str: str}:
