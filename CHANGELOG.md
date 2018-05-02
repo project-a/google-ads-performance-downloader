@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.1
+*2018-05-02*
+
+- Moved to googleads version 11.0.1
+- uses now google_auth_oauthlib
+
 ## 1.7.0
 *2018-03-12*
 - Download currency information for each account
@@ -7,11 +13,13 @@
 
 ## 1.6.1
 *2018-03-05*
+
 - Made API version configurable
 
 
 ## 1.6.0
 *2018-02-19*
+
 - Moved to googleads version 10.0.0
 
 ## 1.5.1
