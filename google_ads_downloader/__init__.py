@@ -1,4 +1,4 @@
-from adwords_downloader import config, cli
+from google_ads_downloader import config, cli
 
 MARA_CONFIG_MODULES = [config]
 

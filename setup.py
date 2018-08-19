@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='google-adwords-performance-downloader',
     version='1.7.1',
+    name='google-ads-performance-downloader',
     description="Downloads data from the Google Adwords Api to local files",
 
     install_requires=[
@@ -18,8 +18,8 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'download-adwords-performance-data=adwords_downloader.cli:download_data',
-            'refresh-adwords-api-oauth2-token=adwords_downloader.cli:refresh_oauth2_token'
+            'download-google-ads-performance-data=google_ads_downloader.cli:download_data',
+            'refresh-google-ads-api-oauth2-token=google_ads_downloader.cli:refresh_oauth2_token'
         ]
     }
 )

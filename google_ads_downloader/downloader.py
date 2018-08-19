@@ -13,7 +13,7 @@ import time
 from enum import Enum
 from pathlib import Path
 
-from adwords_downloader import config
+from google_ads_downloader import config
 from googleads import adwords, oauth2, errors
 
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -59,7 +59,7 @@ class AdWordsApiClient(adwords.AdWordsClient):
 
     def _fetch_client_customers(self):
         """Fetches the client customers, including their names and account labels, from
-         the Google AdWords API
+         the Google Ads API
 
         Returns:
             A dictionary of client_customers with
@@ -122,7 +122,7 @@ def download_performance(api_client: AdWordsApiClient,
                          performance_report_type: PerformanceReportType,
                          fields: [str],
                          predicates: [{}]):
-    """Download the AdWords performance and saves them as zipped json files to disk
+    """Download the Google Ads performance and saves them as zipped json files to disk
 
     Args:
         api_client: An AdWordsApiClient
@@ -137,7 +137,7 @@ def download_performance(api_client: AdWordsApiClient,
     last_date = datetime.datetime.now() - datetime.timedelta(days=1)
     current_date = last_date
     while current_date >= first_date:
-        relative_filepath = Path('{date:%Y/%m/%d}/adwords/{filename}_{version}.json.gz'.format(
+        relative_filepath = Path('{date:%Y/%m/%d}/google-ads/{filename}_{version}.json.gz'.format(
             date=current_date,
             filename=performance_report_type.value,
             version=config.output_file_version()))
@@ -182,7 +182,7 @@ def get_performance_for_single_day(api_client: AdWordsApiClient,
     """
     report_list = []
     logging.info(
-        'download AdWords {} for {}'.format(report_type.value, single_date.strftime('%Y-%m-%d')))
+        'download google ads {} for {}'.format(report_type.value, single_date.strftime('%Y-%m-%d')))
     for client_customer_id in client_customer_ids:
         api_client.SetClientCustomerId(client_customer_id)
         report = _download_adwords_report(api_client,
@@ -196,13 +196,13 @@ def get_performance_for_single_day(api_client: AdWordsApiClient,
 
 
 def download_account_structure(api_client: AdWordsApiClient):
-    """Downloads the Google AdWords account structure as saves it as a zipped csv file.
+    """Downloads the Google Ads account structure as saves it as a zipped csv file.
 
     Args:
         api_client: An AdWordsApiClient
 
     """
-    filename = Path('adwords-account-structure_{}.csv.gz'.format(config.output_file_version()))
+    filename = Path('google-ads-account-structure_{}.csv.gz'.format(config.output_file_version()))
     filepath = ensure_data_directory(filename)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -248,7 +248,7 @@ def download_account_structure(api_client: AdWordsApiClient):
 
 
 def get_campaign_attributes(api_client: AdWordsApiClient, client_customer_id: int) -> {}:
-    """Downloads the campaign attributes from the Google AdWords API
+    """Downloads the campaign attributes from the Google Ads API
     https://developers.google.com/adwords/api/docs/appendix/reports/campaign-performance-report
 
     Args:
@@ -348,7 +348,7 @@ def _download_adwords_report(api_client: AdWordsApiClient,
                              fields: [str],
                              predicates: {},
                              current_date: datetime = None) -> []:
-    """Downloads an AdWords report from the Google AdWords API
+    """Downloads an Google Ads report from the Google Ads API
 
     Args:
         api_client: An AdWordsApiClients
@@ -361,7 +361,7 @@ def _download_adwords_report(api_client: AdWordsApiClient,
         current_date: datetime (optional), if none is specified today's date is assumed
 
     Returns:
-        A Google AdWords report as a string
+        A Google Ads report as a string
 
     """
     report_filter = {
@@ -461,7 +461,7 @@ def refresh_oauth_token():
     flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
     authorize_url, _ = flow.authorization_url(prompt='consent')
 
-    print('Log into the Google Account you use to access your AdWords account '
+    print('Log into the Google Account you use to access your Google Ads account '
           'and go to the following URL: \n%s\n' % authorize_url)
     print('After approving the token enter the verification code (if specified).')
     code = input('Code: ').strip()

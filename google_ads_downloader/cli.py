@@ -1,7 +1,7 @@
 """Command line interface for adwords downloader"""
 
 import click
-from adwords_downloader import config, downloader
+from google_ads_downloader import config
 from functools import partial
 
 
@@ -31,6 +31,8 @@ def refresh_oauth2_token(**kwargs):
     When options are not specified, then the defaults from config.py are used.
     """
     apply_options(kwargs)
+
+    from google_ads_downloader import downloader
     downloader.refresh_oauth_token()
 
 
@@ -52,4 +54,5 @@ def download_data(**kwargs):
     When options are not specified, then the defaults from config.py are used.
     """
     apply_options(kwargs)
+    from google_ads_downloader import downloader
     downloader.download_data()
