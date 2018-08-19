@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0
+*2018-08-19*
+
+- Rename package to google-ads-performance-downloader
+- Adapt code to reflect the renaming of Adwords to Google Ads
+- Update googleads-python-lib to 13.0.0
+
+**required changes**
+
+- use new package names in requirements.txt
+- adapt ETL to new ouput file names
+- adapt calls to download cli command
+ 
+
 ## 1.7.1
 *2018-05-02*
 
