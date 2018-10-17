@@ -1,6 +1,8 @@
 # Google Ads Performance Downloader
 
-A Python script for downloading performance data and account structure from an [MCC account](https://ads.google.com/home/tools/manager-accounts/) using the Google Adwords API ([v201806](https://developers.google.com/adwords/api/docs/reference/release-notes/v201806) to local files.
+A Python script for downloading performance data and account structure from an [MCC account](https://ads.google.com/home/tools/manager-accounts/) using the Google Adwords API ([v201806](https://developers.google.com/adwords/api/docs/reference/release-notes/v201806)) to local files.
+
+The [mara Google ads performance pipeline](https://github.com/mara/google-ads-performance-pipeline) can be, then, used for loading and transforming the downloaded data into a dimensional schema.
 
 ## Resulting data
 By default, it creates two data sets:
