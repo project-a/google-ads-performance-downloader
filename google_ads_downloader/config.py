@@ -41,7 +41,7 @@ def oauth2_refresh_token() -> str:
 
 def api_version() -> str:
     """Which Adwords API version should be called"""
-    return 'v201802'
+    return 'v201809'
 
 
 def redownload_window() -> str:
@@ -51,7 +51,7 @@ def redownload_window() -> str:
 
 def output_file_version() -> str:
     """A suffix that is added to output files, denoting a version of the data format"""
-    return 'v3'
+    return 'v4'
 
 
 def max_retries() -> int:

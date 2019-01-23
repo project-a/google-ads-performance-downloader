@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0
+*2019-01-23*
+
+- Migrate into Adwords API version v201809
+- Update googleads-python-lib to 15.0.2
+
 ## 2.0.0
 *2018-08-19*
 

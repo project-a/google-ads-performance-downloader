@@ -86,6 +86,9 @@ def download_data():
     """Creates an AdWordsApiClient and downloads the data"""
     logger = logging.basicConfig(level=logging.INFO,
                                  format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    logging.info('Adwords API version: '+str(config.api_version()))
+
     api_client = AdWordsApiClient()
     download_data_sets(api_client)
 

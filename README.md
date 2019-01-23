@@ -1,6 +1,6 @@
 # Google Ads Performance Downloader
 
-A Python script for downloading performance data and account structure from an [MCC account](https://ads.google.com/home/tools/manager-accounts/) using the Google Adwords API ([v201806](https://developers.google.com/adwords/api/docs/reference/release-notes/v201806)) to local files.
+A Python script for downloading performance data and account structure from an [MCC account](https://ads.google.com/home/tools/manager-accounts/) using the Google Adwords API ([v201809](https://developers.google.com/adwords/api/docs/reference/release-notes/v201809)) to local files.
 
 The [mara Google ads performance pipeline](https://github.com/mara/google-ads-performance-pipeline) can be, then, used for loading and transforming the downloaded data into a dimensional schema.
 
@@ -9,8 +9,8 @@ By default, it creates two data sets:
 
 1. **Ad Performance** consists of measures such as impressions, clicks, conversions and cost. The script creates one file per day in a specified time range:
 
-        data/2015/03/31/google-ads/ad-performance-v3.json.gz
-        data/2015/04/01/google-ads/ad-performance-v3.json.gz
+        data/2015/03/31/google-ads/ad-performance-v4.json.gz
+        data/2015/04/01/google-ads/ad-performance-v4.json.gz
 
     For the last 30 days, the script always re-downloads the files as data still changes (e.g cost or attributed conversions). Beyond that, files are only downloaded when they do not yet exist.
     **Note**: If you are using an attribution window larger than 30 days adjust the `redownload_window` config accordingly.
@@ -39,7 +39,7 @@ By default, it creates two data sets:
 
 2. **Account Structure** information. This file is always overwritten by the script:
 
-        data/google-ads-account-structure-v3.csv.gz
+        data/google-ads-account-structure-v4.csv.gz
 
     Each line contains one ad together with its ad group, campaign and account:
 
@@ -75,7 +75,7 @@ Optionally, you can apply labels on all hierarchy levels for segmenting the acco
  The Google Ads Performance Downloader requires:
 
     Python (>= 3.6)
-    googleads (==10.0.0)
+    googleads (==15.0.2)
     click (>=6.0)
 
 The easiest way to install google-ads-downloader is using pip
@@ -165,7 +165,7 @@ All options:
                                    data will be redownloaded. Default: "30"
       --output_file_version TEXT   A suffix that is added to output files,
                                    denoting a version of the data format. Default:
-                                   "v3"
+                                   "v4"
       --max_retries TEXT           How often try retry at max in case of 500
                                    errors. Default: "5"
       --retry_backoff_factor TEXT  How many seconds to wait between retries (is
