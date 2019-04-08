@@ -3,6 +3,32 @@ Configures access to Adwords API and where to store results
 """
 from datetime import date
 
+class AdwordsAccount:
+    """A Adwords account"""
+
+    def __init__(self, name: str, client_customer_id: str, developer_token: str, oauth2_client_id: str, oauth2_client_secret: str, oauth2_refresh_token: str):
+        self.name = name
+        self.client_customer_id = client_customer_id
+        self.developer_token = developer_token
+        self.oauth2_client_id = oauth2_client_id
+        self.oauth2_client_secret = oauth2_client_secret
+        self.oauth2_refresh_token = oauth2_refresh_token
+
+    def __repr__(self) -> str:
+        """A self representation of the account"""
+        return '<{name} {client_customer_id} {oauth2_client_id} {oauth2_client_secret} {oauth2_refresh_token}>'.format(name = self.name,
+                                                                      client_customer_id=self.client_customer_id,
+                                                                      oauth2_client_id=self.oauth2_client_id,
+                                                                      oauth2_client_secret=self.oauth2_client_secret,
+                                                                      oauth2_refresh_token=self.oauth2_refresh_token)
+
+    def __str__(self) -> str:
+        """A human-readable representation of the account"""
+        return 'AdwordsAccount: ' + self.name
+
+def accounts() -> [AdwordsAccount]:
+    """A list of Adwords accounts provided by <client_customer_id developer_token oauth2_client_id oauth2_client_secret oauth2_refresh_token> Accepts multiple accounts"""
+    return [AdwordsAccount('name', 'client_customer_id', 'developer_token', 'oauth2_client_id', 'oauth2_client_secret', 'oauth2_refresh_token')]
 
 def data_dir() -> str:
     """The directory where result data is written to"""
