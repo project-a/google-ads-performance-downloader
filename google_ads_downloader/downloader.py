@@ -14,6 +14,7 @@ from enum import Enum
 from pathlib import Path
 
 from google_ads_downloader import config
+from google_ads_downloader.config import AdwordsAccount
 from googleads import adwords, oauth2, errors
 
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -36,15 +37,15 @@ class PerformanceReportType(Enum):
 class AdWordsApiClient(adwords.AdWordsClient):
     """A client for downloading data from the Google AdWords API"""
 
-    def __init__(self):
+    def __init__(self, account: AdwordsAccount):
 
         self.client = super(AdWordsApiClient, self).__init__(
-            developer_token=config.developer_token(),
+            developer_token=account.developer_token,
             oauth2_client=oauth2.GoogleRefreshTokenClient(
-                client_id=config.oauth2_client_id(),
-                client_secret=config.oauth2_client_secret(),
-                refresh_token=config.oauth2_refresh_token()),
-            client_customer_id=config.client_customer_id())
+                client_id=account.oauth2_client_id,
+                client_secret=account.oauth2_client_secret,
+                refresh_token=account.oauth2_refresh_token),
+            client_customer_id=account.client_customer_id)
         self.client_customers = self._fetch_client_customers()
 
     def _fetch_managed_customer_page(self):
@@ -88,12 +89,17 @@ def download_data():
                                  format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     logging.info('Adwords API version: '+str(config.api_version()))
+    accounts = config.accounts()
+    for account in accounts:
+        api_client = AdWordsApiClient(account)
+        if len(accounts) > 1:
+            download_data_sets(api_client, account.name)
+        else:
+            download_data_sets(api_client, '')
 
-    api_client = AdWordsApiClient()
-    download_data_sets(api_client)
 
 
-def download_data_sets(api_client: AdWordsApiClient):
+def download_data_sets(api_client: AdWordsApiClient, account_name: str):
     """Downloads the account structure and the AdWords ad performance
 
     Args:
@@ -102,7 +108,7 @@ def download_data_sets(api_client: AdWordsApiClient):
     """
     download_performance(api_client,
                          PerformanceReportType.AD_PERFORMANCE_REPORT,
-                         fields=['Date', 'Id', 'Device', 'AdNetworkType2',
+                         fields=['Date', 'Id', 'AdGroupId', 'Device', 'AdNetworkType2',
                                  'ActiveViewImpressions', 'AveragePosition',
                                  'Clicks', 'Conversions', 'ConversionValue',
                                  'Cost', 'Impressions'],
@@ -115,16 +121,18 @@ def download_data_sets(api_client: AdWordsApiClient):
                                          'field': 'Impressions',
                                          'operator': 'GREATER_THAN',
                                          'values': [0]
-                                     }]
+                                     }],
+                         folder_name=account_name
                          )
 
-    download_account_structure(api_client)
+    download_account_structure(api_client, account_name)
 
 
 def download_performance(api_client: AdWordsApiClient,
                          performance_report_type: PerformanceReportType,
                          fields: [str],
-                         predicates: [{}]):
+                         predicates: [{}],
+                         folder_name: str):
     """Download the Google Ads performance and saves them as zipped json files to disk
 
     Args:
@@ -140,8 +148,9 @@ def download_performance(api_client: AdWordsApiClient,
     last_date = datetime.datetime.now() - datetime.timedelta(days=1)
     current_date = last_date
     while current_date >= first_date:
-        relative_filepath = Path('{date:%Y/%m/%d}/google-ads/{filename}_{version}.json.gz'.format(
+        relative_filepath = Path('{date:%Y/%m/%d}/google-ads/{folder_name}/{filename}_{version}.json.gz'.format(
             date=current_date,
+            folder_name=folder_name,
             filename=performance_report_type.value,
             version=config.output_file_version()))
         filepath = ensure_data_directory(relative_filepath)
@@ -198,14 +207,17 @@ def get_performance_for_single_day(api_client: AdWordsApiClient,
     return report_list
 
 
-def download_account_structure(api_client: AdWordsApiClient):
+def download_account_structure(api_client: AdWordsApiClient, account_name: str):
     """Downloads the Google Ads account structure as saves it as a zipped csv file.
 
     Args:
         api_client: An AdWordsApiClient
 
     """
-    filename = Path('google-ads-account-structure_{}.csv.gz'.format(config.output_file_version()))
+    if account_name:
+        filename = Path('google-ads-account-structure_{}_{}.csv.gz'.format(config.output_file_version(), account_name))
+    else:
+        filename = Path('google-ads-account-structure_{}.csv.gz'.format(config.output_file_version()))
     filepath = ensure_data_directory(filename)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
