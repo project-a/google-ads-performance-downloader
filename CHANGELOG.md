@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.0 (2019-04-13)
+
+- Change MARA_XXX variables to functions to delay importing of imports
+
+**required changes** 
+
+- If used together with a mara project, Update `mara-app` to `>=2.0.0`
+
+
 ## 2.1.0
 *2019-01-23*
 

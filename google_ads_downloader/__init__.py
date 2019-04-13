@@ -1,5 +1,8 @@
-from google_ads_downloader import config, cli
 
-MARA_CONFIG_MODULES = [config]
+def MARA_CONFIG_MODULES():
+    from . import config, cli
+    return [config]
 
-MARA_CLICK_COMMANDS = [cli.download_data, cli.refresh_oauth2_token]
+def MARA_CLICK_COMMANDS():
+    from . import config, cli
+    return [cli.download_data, cli.refresh_oauth2_token]
