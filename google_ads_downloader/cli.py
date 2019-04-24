@@ -21,10 +21,9 @@ def apply_options(kwargs):
 
 
 @click.command()
-@config_option(config.client_customer_id)
-@config_option(config.developer_token)
-@config_option(config.oauth2_client_id)
-@config_option(config.oauth2_client_secret)
+@config_option(config.accounts, type=(str, str, str, str, str, str), multiple=True,
+               default=('name', 'client_customer_id', 'developer_token', 'oauth2_client_id', 'oauth2_client_secret', 'oauth2_refresh_token'))
+
 def refresh_oauth2_token(**kwargs):
     """
     Creates a new OAuth2 token.
@@ -37,11 +36,8 @@ def refresh_oauth2_token(**kwargs):
 
 
 @click.command()
-@config_option(config.client_customer_id)
-@config_option(config.developer_token)
-@config_option(config.oauth2_client_id)
-@config_option(config.oauth2_client_secret)
-@config_option(config.oauth2_refresh_token)
+@config_option(config.accounts, type=(str, str, str, str, str, str), multiple=True,
+               default=('name', 'client_customer_id', 'developer_token', 'oauth2_client_id', 'oauth2_client_secret', 'oauth2_refresh_token'))
 @config_option(config.data_dir)
 @config_option(config.first_date)
 @config_option(config.redownload_window)

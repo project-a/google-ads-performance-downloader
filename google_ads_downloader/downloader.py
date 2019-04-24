@@ -467,27 +467,28 @@ class ClientConfigBuilder(object):
 
 def refresh_oauth_token():
     """Retrieve and display the access and refresh token."""
+    accounts = config.accounts()
+    for account in accounts:
+        client_config = ClientConfigBuilder(
+            client_type=ClientConfigBuilder.CLIENT_TYPE_WEB, client_id=account.oauth2_client_id,
+            client_secret=account.oauth2_client_secret)
+        flow = InstalledAppFlow.from_client_config(client_config.Build(),
+                                                scopes=['https://www.googleapis.com/auth/adwords'])
+        flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
+        authorize_url, _ = flow.authorization_url(prompt='consent')
 
-    client_config = ClientConfigBuilder(
-        client_type=ClientConfigBuilder.CLIENT_TYPE_WEB, client_id=config.oauth2_client_id(),
-        client_secret=config.oauth2_client_secret())
-    flow = InstalledAppFlow.from_client_config(client_config.Build(),
-                                               scopes=['https://www.googleapis.com/auth/adwords'])
-    flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
-    authorize_url, _ = flow.authorization_url(prompt='consent')
+        print('Log into the Google Account you use to access your Google Ads account '
+            'and go to the following URL: \n%s\n' % authorize_url)
+        print('After approving the token enter the verification code (if specified).')
+        code = input('Code: ').strip()
+        try:
+            flow.fetch_token(code=code)
+        except InvalidGrantError as ex:
+            print('Authentication has failed: %s' % ex)
+            sys.exit(1)
 
-    print('Log into the Google Account you use to access your Google Ads account '
-          'and go to the following URL: \n%s\n' % authorize_url)
-    print('After approving the token enter the verification code (if specified).')
-    code = input('Code: ').strip()
-    try:
-        flow.fetch_token(code=code)
-    except InvalidGrantError as ex:
-        print('Authentication has failed: %s' % ex)
-        sys.exit(1)
-
-    print('Access token: %s' % flow.credentials.token)
-    print('Refresh token: %s' % flow.credentials.refresh_token)
+        print('Access token: %s' % flow.credentials.token)
+        print('Refresh token: %s' % flow.credentials.refresh_token)
 
 
 def parse_labels(labels: str) -> {str: str}:
