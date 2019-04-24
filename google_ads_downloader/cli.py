@@ -5,19 +5,30 @@ from google_ads_downloader import config
 from functools import partial
 
 
-def config_option(config_function):
+def config_option(config_function, **kwargs):
     """Helper decorator that turns an option function into a cli option"""
 
-    return lambda function: \
-        click.option('--' + config_function.__name__,
-                     help=f'{config_function.__doc__}. Default: "{config_function()}"') \
-            (function)
+    def decorator(function):
+        default = kwargs.pop('default', None)
+        if default is None:
+            default = config_function()
+        if kwargs.get('multiple'):
+            default = [default]
+        return click.option('--' + config_function.__name__,
+                            help=config_function.__doc__ + '. Default: "' + str(default) + '"',
+                            **kwargs)(function)
+
+    return decorator
 
 
 def apply_options(kwargs):
     """Applies passed cli parameters to config.py"""
     for key, value in kwargs.items():
-        if value: setattr(config, key, partial(lambda v: v, value))
+        if key == 'accounts':
+            if value !=():
+                setattr(config, key, partial(lambda v: [config.AdwordsAccount(*args) for args in v], value))
+        else:
+            if value: setattr(config, key, partial(lambda v: v, value))
 
 
 @click.command()

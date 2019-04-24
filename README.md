@@ -21,6 +21,7 @@ By default, it creates two data sets:
           {
             "Day": "2015-03-31",
             "Ad ID": "69450572293",
+            "Ad group ID": "34578142478",
             "Device": "Computers",
             "Network (with search partners)": "Google search",
             "Active View viewable impressions": "0",
@@ -110,10 +111,8 @@ To get access level beyond the test account fill out the Adwords API Token appli
 
 Once approved, use the Google Adwords API to get an OAuth2 refresh token by calling (replace with your credentials):
 
-    $ refresh-google-ads-api-oauth2-token --client_customer_id 123-456-7890 \
-    --developer_token ABCDEFEGHIJKL \
-    --oauth2_client_id 123456789-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com \
-    --oauth2_client_secret aBcDeFg
+    $ refresh-google-ads-api-oauth2-token \
+    --accounts name client_customer_id developer_token oauth2_client_id oauth2_client_secret oauth2_refresh_token
 
 This prompts you to visit a URL where you need to allow the OAuth2 credentials to access the API on your behalf. Navigate to the URL in a private browser session or an incognito window. Log in with the same Google account you use to access Google Ads, and then click **Allow** on the OAuth2 consent screen:
 
@@ -127,11 +126,9 @@ An authorization code is shown to you. Copy and paste it into the command line w
 
 To run the Google Ads Performance Downloader call `download-google-ads-performance-data` with its config parameters:  
 
-    $ download-google-ads-performance-data --client_customer_id 123-456-7890 \
-    --developer_token ABCDEFEGHIJKL \
-    --oauth2_client_id 123456789-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com \
-    --oauth2_client_secret aBcDeFg \
-    --oauth2_refresh_token 1/acbd-efghijklmnopqrstuvwxyz \
+    $ download-google-ads-performance-data \
+    --accounts name client_customer_id developer_token oauth2_client_id oauth2_client_secret oauth2_refresh_token \
+    --accounts name2 client_customer_id2 developer_token2 oauth2_client_id2 oauth2_client_secret2 oauth2_refresh_token2 \
     --data_dir /tmp/google-ads
 
 
@@ -144,30 +141,23 @@ All options:
       config.py are used.
 
     Options:
-      --client_customer_id TEXT    The id of the manager account (MCC) that
-                                   contains all the accounts for which data should
-                                   be downloaded. Default: "123-456-7890"
-      --developer_token TEXT       The developer token that is used to access the
-                                   Google Ads API. Default: "ABCDEFEGHIJKL"
-      --oauth2_client_id TEXT      The Oauth client id obtained from the Google Ads
-                                   API center. Default: "123456789-abcdefghijklmno
-                                   pqrstuvwxyz.apps.googleusercontent.com"
-      --oauth2_client_secret TEXT  The Oauth client secret obtained from the
-                                   Google Ads API center. Default: "aBcDeFg"
-      --oauth2_refresh_token TEXT  The Oauth refresh token returned from the
-                                   refresh-google-ads-api-oauth2-token script.
-                                   Default: "1/acbd-efghijklmnopqrstuvwxyz"
-      --data_dir TEXT              The directory where result data is written to.
-                                   Default: "/tmp/google-ads"
-      --first_date TEXT            The first day for which data is downloaded.
-                                   Default: "2015-01-01"
-      --redownload_window TEXT     The number of days for which the performance
-                                   data will be redownloaded. Default: "30"
-      --output_file_version TEXT   A suffix that is added to output files,
-                                   denoting a version of the data format. Default:
-                                   "v4"
-      --max_retries TEXT           How often try retry at max in case of 500
-                                   errors. Default: "5"
-      --retry_backoff_factor TEXT  How many seconds to wait between retries (is
-                                   multiplied with retry count). Default: "5"
-      --help                       Show this message and exit.
+      --accounts TEXT TEXT TEXT TEXT TEXT TEXT  The manager account (MCC) that contains
+                                                all the accounts for which data should
+                                                be downloaded. 
+                                                Default: name client_customer_id \
+                                                developer_token oauth2_client_id \
+                                                oauth2_client_secret oauth2_refresh_token
+      --data_dir TEXT                           The directory where result data is written to.
+                                                Default: "/tmp/google-ads"
+      --first_date TEXT                         The first day for which data is downloaded.
+                                                Default: "2015-01-01"
+      --redownload_window TEXT                  The number of days for which the performance
+                                                data will be redownloaded. Default: "30"
+      --output_file_version TEXT                A suffix that is added to output files,
+                                                denoting a version of the data format. Default:
+                                                "v4"
+      --max_retries TEXT                        How often try retry at max in case of 500
+                                                errors. Default: "5"
+      --retry_backoff_factor TEXT               How many seconds to wait between retries (is
+                                                multiplied with retry count). Default: "5"
+      --help                                    Show this message and exit.
