@@ -7,6 +7,7 @@ import logging
 import re
 import shutil
 import sys
+import io
 import tempfile
 import json
 import time
@@ -84,8 +85,8 @@ class AdWordsApiClient(adwords.AdWordsClient):
 
 def download_data():
     """Creates an AdWordsApiClient and downloads the data"""
-    logger = logging.basicConfig(level=logging.INFO,
-                                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     logging.info('Adwords API version: '+str(config.api_version()))
 
@@ -132,7 +133,6 @@ def download_performance(api_client: AdWordsApiClient,
         performance_report_type: A PerformanceReportType object
         fields: A list of fields to be included in the report
         predicates: A list of filters for the report
-        redownload_window: The number of days the performance is redownloaded
     """
     client_customer_ids = api_client.client_customers.keys()
 
@@ -194,7 +194,7 @@ def get_performance_for_single_day(api_client: AdWordsApiClient,
                                           fields=fields,
                                           predicates=predicates,
                                           )
-        report_list.extend(_convert_report_to_list(report))
+        report_list.extend(list(report))
     return report_list
 
 
@@ -224,7 +224,8 @@ def download_account_structure(api_client: AdWordsApiClient):
                 ad_group_attributes = get_ad_group_attributes(api_client, client_customer_id)
                 ad_data = get_ad_data(api_client, client_customer_id)
 
-                for ad_id, ad_data_dict in ad_data.items():
+                for ad_data_dict in ad_data:
+                    ad_id = ad_data_dict['Ad ID']
                     campaign_id = ad_data_dict['Campaign ID']
                     ad_group_id = ad_data_dict['Ad group ID']
                     currency_code = client_customer['Currency Code']
@@ -272,10 +273,7 @@ def get_campaign_attributes(api_client: AdWordsApiClient, client_customer_id: in
                                                              'PAUSED',
                                                              'REMOVED']
                                                   })
-    report_list = _convert_report_to_list(report)
-
-    return {row['Campaign ID']: parse_labels(row['Labels']) for row in
-            report_list}
+    return {row['Campaign ID']: parse_labels(row['Labels']) for row in report}
 
 
 def get_ad_group_attributes(api_client: AdWordsApiClient, client_customer_id: int) -> {}:
@@ -300,13 +298,11 @@ def get_ad_group_attributes(api_client: AdWordsApiClient, client_customer_id: in
                                                              'PAUSED',
                                                              'REMOVED']
                                                   })
-    report_list = _convert_report_to_list(report)
 
-    return {row['Ad group ID']: parse_labels(row['Labels']) for row in
-            report_list}
+    return {row['Ad group ID']: parse_labels(row['Labels']) for row in report}
 
 
-def get_ad_data(api_client: AdWordsApiClient, client_customer_id: int) -> {}:
+def get_ad_data(api_client: AdWordsApiClient, client_customer_id: int) -> [{}]:
     """Downloads the ad data from the Google AdWords API for a given client_customer_id
     https://developers.google.com/adwords/api/docs/appendix/reports/ad-performance-report
 
@@ -318,7 +314,6 @@ def get_ad_data(api_client: AdWordsApiClient, client_customer_id: int) -> {}:
         A dictionary of the form {ad_id: {key: value}}
     """
     logging.info('get ad data for account {}'.format(client_customer_id))
-    ad_data = {}
 
     api_client.SetClientCustomerId(client_customer_id)
     report = _download_adwords_report(api_client,
@@ -333,15 +328,15 @@ def get_ad_data(api_client: AdWordsApiClient, client_customer_id: int) -> {}:
                                                              'PAUSED',
                                                              'DISABLED']
                                                   })
-    report_list = _convert_report_to_list(report)
 
-    for row in report_list:
+    ad_data = []
+    for row in report:
         attributes = parse_labels(row['Labels'])
         if row['Ad type'] is not None:
             attributes = {**attributes, 'Ad type': row['Ad type']}
         if row['Ad state'] is not None:
             attributes = {**attributes, 'Ad state': row['Ad state']}
-        ad_data[row['Ad ID']] = {**row, 'attributes': attributes}
+        ad_data.append({**row, 'attributes': attributes})
 
     return ad_data
 
@@ -350,7 +345,7 @@ def _download_adwords_report(api_client: AdWordsApiClient,
                              report_type: str,
                              fields: [str],
                              predicates: {},
-                             current_date: datetime = None) -> []:
+                             current_date: datetime = None) -> csv.DictReader:
     """Downloads an Google Ads report from the Google Ads API
 
     Args:
@@ -371,7 +366,7 @@ def _download_adwords_report(api_client: AdWordsApiClient,
         'reportName': '{}_#'.format(report_type),
         'dateRangeType': 'CUSTOM_DATE',
         'reportType': report_type,
-        'downloadFormat': 'TSV',
+        'downloadFormat': 'CSV',
         'selector': {
             'fields': fields,
             'predicates': predicates
@@ -393,11 +388,14 @@ def _download_adwords_report(api_client: AdWordsApiClient,
     while True:
         retry_count += 1
         try:
-            report = report_downloader.DownloadReportAsString(report_filter,
-                                                              skip_report_header=False,
-                                                              skip_column_header=False,
-                                                              skip_report_summary=False)
-            return report
+            report = io.StringIO()
+            report_downloader.DownloadReport(report_filter,
+                                             output=report,
+                                             skip_report_header=True,
+                                             skip_column_header=False,
+                                             skip_report_summary=True)
+            report.seek(0)
+            return csv.DictReader(report)
         except errors.AdWordsReportError as e:
             if retry_count < config.max_retries():
 
@@ -435,7 +433,7 @@ class ClientConfigBuilder(object):
         self.auth_uri = auth_uri
         self.token_uri = token_uri
 
-    def Build(self):
+    def build(self):
         """Builds a client config dictionary used in the OAuth 2.0 flow."""
         if all((self.client_type, self.client_id, self.client_secret,
                 self.auth_uri, self.token_uri)):
@@ -459,7 +457,7 @@ def refresh_oauth_token():
     client_config = ClientConfigBuilder(
         client_type=ClientConfigBuilder.CLIENT_TYPE_WEB, client_id=config.oauth2_client_id(),
         client_secret=config.oauth2_client_secret())
-    flow = InstalledAppFlow.from_client_config(client_config.Build(),
+    flow = InstalledAppFlow.from_client_config(client_config.build(),
                                                scopes=['https://www.googleapis.com/auth/adwords'])
     flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
     authorize_url, _ = flow.authorization_url(prompt='consent')
@@ -491,26 +489,6 @@ def parse_labels(labels: str) -> {str: str}:
     matches = re.findall("{([^=]+)=([^=]+)}", labels)
     labels = {x[0].strip().lower().title(): x[1].strip() for x in matches}
     return labels
-
-
-def _convert_report_to_list(report: str) -> [{}]:
-    """Converts a Google AdWords report to a list of dictionaries
-
-    Args:
-        report: A Google AdWords report as a string
-
-    Returns:
-        A list containing dictionaries with the data from the report
-
-    """
-    # Discard the first line as it only contains meta information.
-    # The last two lines only display summaries
-    rows = list(csv.reader(report.split('\n')[1:-2], dialect='excel-tab'))
-
-    # The second line holds the column names
-    keys = rows[0]
-
-    return [dict(zip(keys, row)) for row in rows[1:]]
 
 
 def ensure_data_directory(relative_path: Path = None) -> Path:

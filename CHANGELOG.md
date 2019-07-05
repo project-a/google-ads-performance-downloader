@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.0 (2019-07-05)
+
+- Compatible with specifications: a unique identifier is an Ad ID + Ad Group ID.
+
 ## 3.0.0 (2019-04-13)
 
 - Change MARA_XXX variables to functions to delay importing of imports

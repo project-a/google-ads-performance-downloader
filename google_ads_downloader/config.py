@@ -51,7 +51,7 @@ def redownload_window() -> str:
 
 def output_file_version() -> str:
     """A suffix that is added to output files, denoting a version of the data format"""
-    return 'v4'
+    return 'v5'
 
 
 def max_retries() -> int:
