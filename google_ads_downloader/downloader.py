@@ -103,7 +103,7 @@ def download_data_sets(api_client: AdWordsApiClient):
     """
     download_performance(api_client,
                          PerformanceReportType.AD_PERFORMANCE_REPORT,
-                         fields=['Date', 'Id', 'Device', 'AdNetworkType2',
+                         fields=['Date', 'Id', 'AdGroupId', 'Device', 'AdNetworkType2',
                                  'ActiveViewImpressions', 'AveragePosition',
                                  'Clicks', 'Conversions', 'ConversionValue',
                                  'Cost', 'Impressions'],
