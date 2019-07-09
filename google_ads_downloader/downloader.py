@@ -101,22 +101,32 @@ def download_data_sets(api_client: AdWordsApiClient):
         api_client: AdWordsApiClient
 
     """
+
+    predicates = [{'field': 'Status',
+                   'operator': 'IN',
+                   'values': ['ENABLED',
+                              'PAUSED',
+                              'DISABLED']
+                   }, {
+                      'field': 'Impressions',
+                      'operator': 'GREATER_THAN',
+                      'values': [0]
+                  }]
+
+    if config.ignore_removed_campaigns():
+        predicates.append({
+            'field': 'CampaignStatus',
+            'operator': 'NOT_EQUALS',
+            'values': 'REMOVED'
+        })
+
     download_performance(api_client,
                          PerformanceReportType.AD_PERFORMANCE_REPORT,
                          fields=['Date', 'Id', 'AdGroupId', 'Device', 'AdNetworkType2',
                                  'ActiveViewImpressions', 'AveragePosition',
                                  'Clicks', 'Conversions', 'ConversionValue',
                                  'Cost', 'Impressions'],
-                         predicates=[{'field': 'Status',
-                                      'operator': 'IN',
-                                      'values': ['ENABLED',
-                                                 'PAUSED',
-                                                 'DISABLED']
-                                      }, {
-                                         'field': 'Impressions',
-                                         'operator': 'GREATER_THAN',
-                                         'values': [0]
-                                     }]
+                         predicates=predicates
                          )
 
     download_account_structure(api_client)
@@ -316,18 +326,31 @@ def get_ad_data(api_client: AdWordsApiClient, client_customer_id: int) -> [{}]:
     logging.info('get ad data for account {}'.format(client_customer_id))
 
     api_client.SetClientCustomerId(client_customer_id)
+
+    predicates = [
+        {
+            'field': 'Status',
+            'operator': 'IN',
+            'values': ['ENABLED',
+                       'PAUSED',
+                       'DISABLED']
+        }
+    ]
+
+    if config.ignore_removed_campaigns():
+        predicates.append({
+            'field': 'CampaignStatus',
+            'operator': 'NOT_EQUALS',
+            'values': 'REMOVED'
+        })
+
     report = _download_adwords_report(api_client,
                                       report_type='AD_PERFORMANCE_REPORT',
                                       fields=['Id', 'AdGroupId', 'AdGroupName',
                                               'CampaignId', 'CampaignName',
                                               'Labels', 'Headline', 'AdType',
                                               'Status'],
-                                      predicates={'field': 'Status',
-                                                  'operator': 'IN',
-                                                  'values': ['ENABLED',
-                                                             'PAUSED',
-                                                             'DISABLED']
-                                                  })
+                                      predicates=predicates)
 
     ad_data = []
     for row in report:

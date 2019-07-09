@@ -62,3 +62,8 @@ def max_retries() -> int:
 def retry_backoff_factor() -> int:
     """How many seconds to wait between retries (is multiplied with retry count)"""
     return 5
+
+
+def ignore_removed_campaigns() -> bool:
+    """Whether to ignore campaigns with status 'REMOVED'"""
+    return False
