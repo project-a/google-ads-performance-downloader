@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.0.0 (2019-07-05)
+
+- Compatible with specifications: a unique identifier is an Ad ID + Ad Group ID.
+- Add option to ignore downloading of data related to removed campaigns
+
+**required changes**
+
+- The file format changed to `v5`. Adapt etl scripts that process the output data.
+  - Ad ID no longer unique in any files
+  - Ad performance datasets now include Ad Group Id
+
 ## 3.0.0 (2019-04-13)
 
 - Change MARA_XXX variables to functions to delay importing of imports

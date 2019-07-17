@@ -51,7 +51,7 @@ def redownload_window() -> str:
 
 def output_file_version() -> str:
     """A suffix that is added to output files, denoting a version of the data format"""
-    return 'v4'
+    return 'v5'
 
 
 def max_retries() -> int:
@@ -62,3 +62,8 @@ def max_retries() -> int:
 def retry_backoff_factor() -> int:
     """How many seconds to wait between retries (is multiplied with retry count)"""
     return 5
+
+
+def ignore_removed_campaigns() -> bool:
+    """Whether to ignore campaigns with status 'REMOVED'"""
+    return False
