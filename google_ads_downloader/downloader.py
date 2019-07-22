@@ -27,11 +27,13 @@ class PerformanceReportType(Enum):
     https://developers.google.com/adwords/api/docs/appendix/reports/adgroup-performance-report
     https://developers.google.com/adwords/api/docs/appendix/reports/campaign-performance-report
     https://developers.google.com/adwords/api/docs/appendix/reports/account-performance-report
+    https://developers.google.com/adwords/api/docs/appendix/reports/keywords-performance-report
     """
     AD_PERFORMANCE_REPORT = 'ad-performance'
     ADGROUP_PERFORMANCE_REPORT = 'adgroup-performance'
     CAMPAIGN_PERFORMANCE_REPORT = 'campaign-performance'
     ACCOUNT_PERFORMANCE_REPORT = 'account-performance'
+    KEYWORDS_PERFORMANCE_REPORT = 'keywords-performance'
 
 
 class AdWordsApiClient(adwords.AdWordsClient):
@@ -88,7 +90,7 @@ def download_data():
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    logging.info('Adwords API version: '+str(config.api_version()))
+    logging.info('Adwords API version: ' + str(config.api_version()))
 
     api_client = AdWordsApiClient()
     download_data_sets(api_client)
@@ -102,23 +104,26 @@ def download_data_sets(api_client: AdWordsApiClient):
 
     """
 
-    predicates = [{'field': 'Status',
-                   'operator': 'IN',
-                   'values': ['ENABLED',
-                              'PAUSED',
-                              'DISABLED']
-                   }, {
-                      'field': 'Impressions',
-                      'operator': 'GREATER_THAN',
-                      'values': [0]
-                  }]
+    base_predicates = [{
+        'field': 'Impressions',
+        'operator': 'GREATER_THAN',
+        'values': [0]
+    }]
 
     if config.ignore_removed_campaigns():
-        predicates.append({
+        base_predicates.append({
             'field': 'CampaignStatus',
             'operator': 'NOT_EQUALS',
             'values': 'REMOVED'
         })
+
+    ads_performance_predicates = base_predicates.copy()
+    ads_performance_predicates.append({'field': 'Status',
+                                       'operator': 'IN',
+                                       'values': ['ENABLED',
+                                                  'PAUSED',
+                                                  'DISABLED']
+                                       })
 
     download_performance(api_client,
                          PerformanceReportType.AD_PERFORMANCE_REPORT,
@@ -126,10 +131,29 @@ def download_data_sets(api_client: AdWordsApiClient):
                                  'ActiveViewImpressions', 'AveragePosition',
                                  'Clicks', 'Conversions', 'ConversionValue',
                                  'Cost', 'Impressions'],
-                         predicates=predicates
+                         predicates=ads_performance_predicates
                          )
 
-    download_account_structure(api_client)
+    download_ad_account_structure(api_client)
+
+    if config.download_keywords_performance_reports():
+        keywords_performance_predicates = base_predicates.copy()
+        keywords_performance_predicates.append({'field': 'Status',
+                                                'operator': 'IN',
+                                                'values': ['ENABLED',
+                                                           'PAUSED',
+                                                           'REMOVED']
+                                                })
+
+        download_performance(api_client,
+                             PerformanceReportType.KEYWORDS_PERFORMANCE_REPORT,
+                             fields=['Date', 'Id', 'AdGroupId', 'Device', 'AdNetworkType2',
+                                     'ActiveViewImpressions', 'AveragePosition',
+                                     'Clicks', 'Conversions', 'ConversionValue',
+                                     'Cost', 'Impressions'],
+                             predicates=keywords_performance_predicates
+                             )
+        download_keyword_account_structure(api_client)
 
 
 def download_performance(api_client: AdWordsApiClient,
@@ -208,7 +232,7 @@ def get_performance_for_single_day(api_client: AdWordsApiClient,
     return report_list
 
 
-def download_account_structure(api_client: AdWordsApiClient):
+def download_ad_account_structure(api_client: AdWordsApiClient):
     """Downloads the Google Ads account structure as saves it as a zipped csv file.
 
     Args:
@@ -234,22 +258,75 @@ def download_account_structure(api_client: AdWordsApiClient):
                 ad_group_attributes = get_ad_group_attributes(api_client, client_customer_id)
                 ad_data = get_ad_data(api_client, client_customer_id)
 
-                for ad_data_dict in ad_data:
-                    ad_id = ad_data_dict['Ad ID']
-                    campaign_id = ad_data_dict['Campaign ID']
-                    ad_group_id = ad_data_dict['Ad group ID']
+                for keyword_data_dict in ad_data:
+                    ad_id = keyword_data_dict['Ad ID']
+                    campaign_id = keyword_data_dict['Campaign ID']
+                    ad_group_id = keyword_data_dict['Ad group ID']
                     currency_code = client_customer['Currency Code']
                     attributes = {**client_customer_attributes,
                                   **campaign_attributes.get(campaign_id, {}),
                                   **ad_group_attributes.get(ad_group_id, {}),
-                                  **ad_data_dict['attributes']}
+                                  **keyword_data_dict['attributes']}
 
                     ad = [str(ad_id),
-                          ad_data_dict['Ad'],
+                          keyword_data_dict['Ad'],
                           str(ad_group_id),
-                          ad_data_dict['Ad group'],
+                          keyword_data_dict['Ad group'],
                           str(campaign_id),
-                          ad_data_dict['Campaign'],
+                          keyword_data_dict['Campaign'],
+                          str(client_customer_id),
+                          client_customer_name,
+                          json.dumps(attributes),
+                          currency_code
+                          ]
+
+                    writer.writerow(ad)
+
+        shutil.move(str(tmp_filepath), str(filepath))
+
+
+def download_keyword_account_structure(api_client: AdWordsApiClient):
+    """Downloads the Google Ads account structure (from keyword perspective) as saves it as a zipped csv file.
+
+    Args:
+        api_client: An AdWordsApiClient
+
+    """
+    filename = Path('google-ads-keyword-account-structure_{}.csv.gz'.format(config.output_file_version()))
+    filepath = ensure_data_directory(filename)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_filepath = Path(tmp_dir, filename)
+        with gzip.open(str(tmp_filepath), 'wt') as tmp_campaign_structure_file:
+            header = ['Keyword Id', 'Keyword', 'Ad Group Id', 'Ad Group', 'Campaign Id',
+                      'Campaign', 'Customer Id', 'Customer Name', 'Attributes', 'Currency Code']
+            writer = csv.writer(tmp_campaign_structure_file, delimiter="\t")
+            writer.writerow(header)
+            for client_customer_id, client_customer in api_client.client_customers.items():
+                labels = json.dumps(client_customer['Labels'])
+                client_customer_attributes = parse_labels(labels)
+                client_customer_name = client_customer['Name']
+
+                campaign_attributes = get_campaign_attributes(api_client, client_customer_id)
+                ad_group_attributes = get_ad_group_attributes(api_client, client_customer_id)
+                keyword_data = get_keyword_data(api_client, client_customer_id)
+
+                for keyword_data_dict in keyword_data:
+                    keyword_id = keyword_data_dict['Keyword ID']
+                    campaign_id = keyword_data_dict['Campaign ID']
+                    ad_group_id = keyword_data_dict['Ad group ID']
+                    currency_code = client_customer['Currency Code']
+                    attributes = {**client_customer_attributes,
+                                  **campaign_attributes.get(campaign_id, {}),
+                                  **ad_group_attributes.get(ad_group_id, {}),
+                                  **keyword_data_dict['attributes']}
+
+                    ad = [str(keyword_id),
+                          keyword_data_dict['Keyword'],
+                          str(ad_group_id),
+                          keyword_data_dict['Ad group'],
+                          str(campaign_id),
+                          keyword_data_dict['Campaign'],
                           str(client_customer_id),
                           client_customer_name,
                           json.dumps(attributes),
@@ -321,7 +398,7 @@ def get_ad_data(api_client: AdWordsApiClient, client_customer_id: int) -> [{}]:
         client_customer_id: A client customer id
 
     Returns:
-        A dictionary of the form {ad_id: {key: value}}
+        A list of dictionaries with ad data
     """
     logging.info('get ad data for account {}'.format(client_customer_id))
 
@@ -362,6 +439,55 @@ def get_ad_data(api_client: AdWordsApiClient, client_customer_id: int) -> [{}]:
         ad_data.append({**row, 'attributes': attributes})
 
     return ad_data
+
+
+def get_keyword_data(api_client: AdWordsApiClient, client_customer_id: int) -> [{}]:
+    """Downloads the keyword data from the Google AdWords API for a given client_customer_id
+    https://developers.google.com/adwords/api/docs/appendix/reports/keywords-performance-report
+
+    Args:
+        api_client: An AdWordsApiClient
+        client_customer_id: A client customer id
+
+    Returns:
+        A list of dictionaries with keyword data
+    """
+    logging.info('get keyword data for account {}'.format(client_customer_id))
+
+    api_client.SetClientCustomerId(client_customer_id)
+
+    predicates = [
+        {
+            'field': 'Status',
+            'operator': 'IN',
+            'values': ['ENABLED',
+                       'PAUSED',
+                       'REMOVED']
+        }
+    ]
+
+    if config.ignore_removed_campaigns():
+        predicates.append({
+            'field': 'CampaignStatus',
+            'operator': 'NOT_EQUALS',
+            'values': 'REMOVED'
+        })
+
+    report = _download_adwords_report(api_client,
+                                      report_type='KEYWORDS_PERFORMANCE_REPORT',
+                                      fields=['Id', 'AdGroupId', 'AdGroupName',
+                                              'CampaignId', 'CampaignName',
+                                              'Labels', 'Criteria', 'Status'],
+                                      predicates=predicates)
+
+    keyword_data = []
+    for row in report:
+        attributes = parse_labels(row['Labels'])
+        if row['Keyword state'] is not None:
+            attributes = {**attributes, 'Keyword state': row['Keyword state']}
+        keyword_data.append({**row, 'attributes': attributes})
+
+    return keyword_data
 
 
 def _download_adwords_report(api_client: AdWordsApiClient,
