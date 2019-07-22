@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.0 (2019-09-03)
+
+- Add option to download keywords-performance reports
+
 ## 4.0.0 (2019-07-05)
 
 - Compatible with specifications: a unique identifier is an Ad ID + Ad Group ID.

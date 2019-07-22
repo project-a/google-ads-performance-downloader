@@ -67,3 +67,8 @@ def retry_backoff_factor() -> int:
 def ignore_removed_campaigns() -> bool:
     """Whether to ignore campaigns with status 'REMOVED'"""
     return False
+
+
+def download_keywords_performance_reports() -> bool:
+    """Whether to download keywords-performance reports"""
+    return False
