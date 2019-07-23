@@ -274,7 +274,7 @@ def download_account_structure(api_client: AdWordsApiClient,
                 campaign_attributes = get_campaign_attributes(api_client, client_customer_id)
                 ad_group_attributes = get_ad_group_attributes(api_client, client_customer_id)
 
-                if account_structure_type.name == AccountStructureType.AD_ACCOUNT_STRUCTURE:
+                if account_structure_type == AccountStructureType.AD_ACCOUNT_STRUCTURE:
                     account_data = get_ad_data(api_client, client_customer_id)
                     main_key_prefix = 'Ad'
                 else:
