@@ -36,6 +36,11 @@ class PerformanceReportType(Enum):
     KEYWORDS_PERFORMANCE_REPORT = 'keywords-performance'
 
 
+class AccountStructureType(Enum):
+    AD_ACCOUNT_STRUCTURE = 'ads'
+    KEYWORD_ACCOUNT_STRUCTURE = 'ads-keyword'
+
+
 class AdWordsApiClient(adwords.AdWordsClient):
     """A client for downloading data from the Google AdWords API"""
 
@@ -134,7 +139,10 @@ def download_data_sets(api_client: AdWordsApiClient):
                          predicates=ads_performance_predicates
                          )
 
-    download_ad_account_structure(api_client)
+    download_account_structure(api_client,
+                               AccountStructureType.AD_ACCOUNT_STRUCTURE,
+                               csv_header=['Ad Id', 'Ad', 'Ad Group Id', 'Ad Group', 'Campaign Id',
+                                           'Campaign', 'Customer Id', 'Customer Name', 'Attributes', 'Currency Code'])
 
     if config.download_keywords_performance_reports():
         keywords_performance_predicates = base_predicates.copy()
@@ -153,7 +161,11 @@ def download_data_sets(api_client: AdWordsApiClient):
                                      'Cost', 'Impressions'],
                              predicates=keywords_performance_predicates
                              )
-        download_keyword_account_structure(api_client)
+        download_account_structure(api_client,
+                                   AccountStructureType.KEYWORD_ACCOUNT_STRUCTURE,
+                                   csv_header=['Keyword Id', 'Keyword', 'Ad Group Id', 'Ad Group',
+                                               'Campaign Id', 'Campaign', 'Customer Id', 'Customer Name',
+                                               'Attributes', 'Currency Code'])
 
 
 def download_performance(api_client: AdWordsApiClient,
@@ -232,23 +244,28 @@ def get_performance_for_single_day(api_client: AdWordsApiClient,
     return report_list
 
 
-def download_ad_account_structure(api_client: AdWordsApiClient):
+def download_account_structure(api_client: AdWordsApiClient,
+                               account_structure_type: AccountStructureType,
+                               csv_header: [str]
+                               ):
     """Downloads the Google Ads account structure as saves it as a zipped csv file.
 
     Args:
         api_client: An AdWordsApiClient
+        account_structure_type: The type of the account structure file (ad or keyword)
+        csv_header: The list of columns to be included in the downloaded CSV file
 
     """
-    filename = Path('google-ads-account-structure_{}.csv.gz'.format(config.output_file_version()))
+    filename = Path('google-{account_structure_type}-account-structure_{version}.csv.gz'.format(
+        account_structure_type=account_structure_type.value,
+        version=config.output_file_version()))
     filepath = ensure_data_directory(filename)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_filepath = Path(tmp_dir, filename)
         with gzip.open(str(tmp_filepath), 'wt') as tmp_campaign_structure_file:
-            header = ['Ad Id', 'Ad', 'Ad Group Id', 'Ad Group', 'Campaign Id',
-                      'Campaign', 'Customer Id', 'Customer Name', 'Attributes', 'Currency Code']
             writer = csv.writer(tmp_campaign_structure_file, delimiter="\t")
-            writer.writerow(header)
+            writer.writerow(csv_header)
             for client_customer_id, client_customer in api_client.client_customers.items():
                 labels = json.dumps(client_customer['Labels'])
                 client_customer_attributes = parse_labels(labels)
@@ -256,77 +273,30 @@ def download_ad_account_structure(api_client: AdWordsApiClient):
 
                 campaign_attributes = get_campaign_attributes(api_client, client_customer_id)
                 ad_group_attributes = get_ad_group_attributes(api_client, client_customer_id)
-                ad_data = get_ad_data(api_client, client_customer_id)
 
-                for keyword_data_dict in ad_data:
-                    ad_id = keyword_data_dict['Ad ID']
-                    campaign_id = keyword_data_dict['Campaign ID']
-                    ad_group_id = keyword_data_dict['Ad group ID']
+                if account_structure_type.name == AccountStructureType.AD_ACCOUNT_STRUCTURE:
+                    account_data = get_ad_data(api_client, client_customer_id)
+                    main_key_prefix = 'Ad'
+                else:
+                    account_data = get_keyword_data(api_client, client_customer_id)
+                    main_key_prefix = 'Keyword'
+
+                for account_data_dict in account_data:
+                    ad_id = account_data_dict[f'{main_key_prefix} ID']
+                    campaign_id = account_data_dict['Campaign ID']
+                    ad_group_id = account_data_dict['Ad group ID']
                     currency_code = client_customer['Currency Code']
                     attributes = {**client_customer_attributes,
                                   **campaign_attributes.get(campaign_id, {}),
                                   **ad_group_attributes.get(ad_group_id, {}),
-                                  **keyword_data_dict['attributes']}
+                                  **account_data_dict['attributes']}
 
                     ad = [str(ad_id),
-                          keyword_data_dict['Ad'],
+                          account_data_dict[f'{main_key_prefix}'],
                           str(ad_group_id),
-                          keyword_data_dict['Ad group'],
+                          account_data_dict['Ad group'],
                           str(campaign_id),
-                          keyword_data_dict['Campaign'],
-                          str(client_customer_id),
-                          client_customer_name,
-                          json.dumps(attributes),
-                          currency_code
-                          ]
-
-                    writer.writerow(ad)
-
-        shutil.move(str(tmp_filepath), str(filepath))
-
-
-def download_keyword_account_structure(api_client: AdWordsApiClient):
-    """Downloads the Google Ads account structure (from keyword perspective) as saves it as a zipped csv file.
-
-    Args:
-        api_client: An AdWordsApiClient
-
-    """
-    filename = Path('google-ads-keyword-account-structure_{}.csv.gz'.format(config.output_file_version()))
-    filepath = ensure_data_directory(filename)
-
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_filepath = Path(tmp_dir, filename)
-        with gzip.open(str(tmp_filepath), 'wt') as tmp_campaign_structure_file:
-            header = ['Keyword Id', 'Keyword', 'Ad Group Id', 'Ad Group', 'Campaign Id',
-                      'Campaign', 'Customer Id', 'Customer Name', 'Attributes', 'Currency Code']
-            writer = csv.writer(tmp_campaign_structure_file, delimiter="\t")
-            writer.writerow(header)
-            for client_customer_id, client_customer in api_client.client_customers.items():
-                labels = json.dumps(client_customer['Labels'])
-                client_customer_attributes = parse_labels(labels)
-                client_customer_name = client_customer['Name']
-
-                campaign_attributes = get_campaign_attributes(api_client, client_customer_id)
-                ad_group_attributes = get_ad_group_attributes(api_client, client_customer_id)
-                keyword_data = get_keyword_data(api_client, client_customer_id)
-
-                for keyword_data_dict in keyword_data:
-                    keyword_id = keyword_data_dict['Keyword ID']
-                    campaign_id = keyword_data_dict['Campaign ID']
-                    ad_group_id = keyword_data_dict['Ad group ID']
-                    currency_code = client_customer['Currency Code']
-                    attributes = {**client_customer_attributes,
-                                  **campaign_attributes.get(campaign_id, {}),
-                                  **ad_group_attributes.get(ad_group_id, {}),
-                                  **keyword_data_dict['attributes']}
-
-                    ad = [str(keyword_id),
-                          keyword_data_dict['Keyword'],
-                          str(ad_group_id),
-                          keyword_data_dict['Ad group'],
-                          str(campaign_id),
-                          keyword_data_dict['Campaign'],
+                          account_data_dict['Campaign'],
                           str(client_customer_id),
                           client_customer_name,
                           json.dumps(attributes),
